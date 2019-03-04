@@ -2,7 +2,13 @@
 
 ## Ce dépôt contient des outils propres à une utilisation de Git.
 
-### Les alias
+Ces alias sont expliqués précisemment dans le livre Git : maitrisez la gestion de vos versions (2ème édition).
+
+## Commandes utiles
+
+Le fichier usefull_commands.md contient une partie des commandes prêtes à l'emploi présentée dans le livre Git : maitrisez la gestion de vos versions (2ème édition). Ces commandes répondent à des cas d'utilisation spécifiques.
+
+## Configurer les alias
 
 Pour configurer les alias, il faut : 
 

@@ -2,21 +2,42 @@
     last = log -1 HEAD
     aa = add --all
     bv = branch -vv
+    bvv = "!f() { git for-each-ref --format='git log %(refname:short) -1 --pretty=format:\"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N\" --decorate --date=short --graph' refs/heads | sh;}; f"
+    ba = branch -ra
+    bd = branch -d
+    bdate = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
     ca = commit --amend
     cb = checkout -b
+    cmf = commit -a --amend -C HEAD
     co = checkout
     di = diff
+    dc = diff --cached
     ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
-    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
-    mm = merge --no-ff
+    ld = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=short --graph
+    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=relative
+    ln = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N" --decorate --date=short --graph
+    mnff = merge --no-ff
     st = status --short --branch
+    tg = tag -a
     pu = push --tags
     ss = stash save
     ssu = stash save -u
     sr = stash show
+    sp = stash show -p
     sl = stash list
     sp = stash pop
     sa = stash apply
-    sd = stash drop
     sb = stash branch
-	getconfig = config --list --show-origin
+    na = notes add
+    nl = notes list
+    napp = notes append
+    ne = notes edit
+    ns = notes show
+    nr = notes remove
+    ready = notes add -m "ReadyToMerge" -f
+    getconfig = config --list --show-origin
+    pushnotes = "!f() { git push \"$1\" refs/notes/*:refs/notes/*;}; f"
+    churn = "!f() { git ls-files -z | xargs -0n1 git blame -w --line-porcelain | grep -a "^author\\ " | sort -f | uniq -c | sort -nr;}; f"
+    srr = "!f() { git stash show stash^{/$*} -p; }; f"
+    spr = "!f() { git stash pop stash^{/$*}; }; f"
+    sdr = "!f() { git stash drop stash^{/$*}; }; f"
