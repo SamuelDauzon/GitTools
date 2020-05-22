@@ -41,3 +41,5 @@
     srr = "!f() { git stash show stash^{/$*} -p; }; f"
     spr = "!f() { git stash pop stash^{/$*}; }; f"
     sdr = "!f() { git stash drop stash^{/$*}; }; f"
+    bdp = !sh -c 'git branch -D $1 && git push origin :$1' -
+    
