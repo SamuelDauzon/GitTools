@@ -1,43 +1,108 @@
 [alias]
-    last = log -1 HEAD
-    aa = add --all
-    bv = branch -vv
-    bvv = "!f() { git for-each-ref --format='git log %(refname:short) -1 --pretty=format:\"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N\" --decorate --date=short --graph' refs/heads | sh;}; f"
-    ba = branch -ra
-    bd = branch -d
-    bdate = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
-    ca = commit --amend
-    cb = checkout -b
-    cmf = commit -a --amend -C HEAD
-    co = checkout
-    di = diff
-    dc = diff --cached
-    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
-    ld = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=short --graph
-    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=relative
-    ln = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N" --decorate --date=short --graph
-    mnff = merge --no-ff
+    # ----- AVANT/PENDANT COMMIT
+    # Afficher les fichiers ajoutés/modifiés (une ligne par fichier)
     st = status --short --branch
-    tg = tag -a
-    pu = push --tags
+    # Visualise les différences entre le répertoire de travail et l'index
+    di = diff
+    # Visualise les différences entre l'index et HEAD
+    dc = diff --cached
+    # Ajoute les fichiers suivis et non suivis et non ignorés
+    aa = add --all
+    # Commite en remplaçant le dernier commit avec les changements dans l'index
+    ca = commit --amend
+    # Commite en remplaçant le dernier commit avec les changements des fichiers suivis
+    cmf = commit -a --amend -C HEAD
+
+    # ----- LISTE DE BRANCHES
+    # Affiche les branches et le dernier commit
+    bv = branch -vv
+    # Affiche les branches, le dernier commit et son auteur ainsi que les références
+    bvv = "!f() { git for-each-ref --format='git log %(refname:short) -1 --pretty=format:\"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N\" --decorate --date=short --graph' refs/heads | sh;}; f"
+    # Affiche les branches (avec les branches distantes suivies)
+    ba = branch -ra
+    # Liste les branches et la date de dernier commit (ordre chronologique)
+    bold = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    # Liste les branches et la date de dernier commit (ordre antichronologique)
+    bnew = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+
+    # ----- LISTE DE COMMITS
+    # Affiche la liste des commits avec les fichiers modifiés
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    # Affiche la listes de commits (avec graph, auteur, date absolue, références)
+    ld = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=short --graph
+    # Affiche la listes de commits (avec graph, auteur, temps écoulé, références)
+    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=relative
+    # Affiche la listes de commits (avec graph, auteur, date absolue, références, note du commit)
+    ln = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N" --decorate --date=short --graph
+
+    # ----- GESTION DES BRANCHES
+    # Change de branche
+    co = checkout
+    # Créer une nouvelle branche et se place dedans
+    cb = checkout -b
+    # Supprime une branche locale
+    bd = branch -d
+    # Supprimer une branche locale et push la suppression
+    bdp = !sh -c 'git branch -D $1 && git push origin :$1' -
+    # Fusion sans avance rapide
+    mnff = merge --no-ff
+
+    # ----- STASH (mettre de côté des modifications)
+    # Met de côté les modifications actuelles des fichiers suivis
     ss = stash save
+    # Met de côté les modifications actuelles de tous les fichiers non ignorés
     ssu = stash save -u
+    # Affiche le dernier stash (ou le stash passé en paramètre)
     sr = stash show
+    # Affiche le dernier stash et son patch (ou le stash passé en paramètre)
     sp = stash show -p
+    # Affiche la liste des stash
     sl = stash list
+    # Applique au répertoire de fichier le dernier stash (ou le stash passé en paramètre) et supprime le stash
     sp = stash pop
+    # Applique au répertoire de fichier le dernier stash (ou le stash passé en paramètre)
     sa = stash apply
+    # Créé une nouvelle branche avec les données du dernier stash (ou le stash passé en paramètre)
     sb = stash branch
-    na = notes add
-    nl = notes list
-    napp = notes append
-    ne = notes edit
-    ns = notes show
-    nr = notes remove
-    ready = notes add -m "ReadyToMerge" -f
-    getconfig = config --list --show-origin
-    pushnotes = "!f() { git push \"$1\" refs/notes/*:refs/notes/*;}; f"
-    churn = "!f() { git ls-files -z | xargs -0n1 git blame -w --line-porcelain | grep -a "^author\\ " | sort -f | uniq -c | sort -nr;}; f"
+    # Supprime le dernier stash (ou le stash passé en paramètre)
+    sdf = stash drop
+    # Permet de lire un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
     srr = "!f() { git stash show stash^{/$*} -p; }; f"
+    # Permet d'appliquer et supprimer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
     spr = "!f() { git stash pop stash^{/$*}; }; f"
+    # Permet d'appliquer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
+    spr = "!f() { git stash apply stash^{/$*}; }; f"
+    # Permet de supprimer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
     sdr = "!f() { git stash drop stash^{/$*}; }; f"
+
+    # ----- NOTES
+    # Ajoute une note à HEAD (ou commit spécifié)
+    na = notes add
+    # Liste les notes
+    nl = notes list
+    # Ajoute du contenu à une note existante (HEAD ou commit spécifié)
+    napp = notes append
+    # Permet d'éditer une note
+    ne = notes edit
+    # Affiche la note de HEAD (ou commit spécifié)
+    ns = notes show
+    # Supprime la note de HEAD (ou commit spécifié)
+    nr = notes remove
+    # Permet de créer la note ReadyToMerge à un commit
+    ready = notes add -m "ReadyToMerge" -f
+    # Permet d'envoyer les notes au dépôt distant
+    pushnotes = "!f() { git push \"$1\" refs/notes/*:refs/notes/*;}; f"
+
+    # DIVERS
+    # Affiche le dernier commit
+    last = log -1 HEAD
+    # Ajouter un tag annoté
+    tg = tag -a
+    # Permet d'envoyer les modifications avec les tags
+    pu = push --tags
+    # Affiche les options de configuration actives et leur fichier d'origine
+    getconfig = config --list --show-origin
+    # Commande inspirée de Mercurial qui permet d'afficher le nombre de lignes commitées par auteur.
+    churn = "!f() { git ls-files -z | xargs -0n1 git blame -w --line-porcelain | grep -a "^author\\ " | sort -f | uniq -c | sort -nr;}; f"
+
+
