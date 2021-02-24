@@ -105,4 +105,3 @@
     # Commande inspirée de Mercurial qui permet d'afficher le nombre de lignes commitées par auteur.
     churn = "!f() { git ls-files -z | xargs -0n1 git blame -w --line-porcelain | grep -a "^author\\ " | sort -f | uniq -c | sort -nr;}; f"
 
-
