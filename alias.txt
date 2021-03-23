@@ -12,6 +12,8 @@
     ca = commit --amend
     # Commite en remplaçant le dernier commit avec les changements des fichiers suivis
     cmf = commit -a --amend -C HEAD
+    # Ajoute toutes les modifications à l'index et commite.
+    ac = !git add --all && git commit -m
 
     # ----- LISTE DE BRANCHES
     # Affiche les branches et le dernier commit
@@ -23,17 +25,17 @@
     # Liste les branches et la date de dernier commit (ordre chronologique)
     bold = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
     # Liste les branches et la date de dernier commit (ordre antichronologique)
-    bnew = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    bnew = for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
 
     # ----- LISTE DE COMMITS
     # Affiche la liste des commits avec les fichiers modifiés
-    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d %Creset%s%Cblue [%cn]" --decorate --numstat
     # Affiche la listes de commits (avec graph, auteur, date absolue, références)
-    ld = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=short --graph
+    ld = log --pretty=format:"%C(yellow)%h %C(green)%ad%C(bold red)%d %Creset%s%C(cyan) [%cn]" --decorate --date=short --graph
     # Affiche la listes de commits (avec graph, auteur, temps écoulé, références)
-    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]" --decorate --date=relative
+    ls = log --pretty=format:"%C(yellow)%h %C(green)[%ad]%C(bold red)%d %Creset%s%C(cyan) [%cn]" --decorate --date=relative
     # Affiche la listes de commits (avec graph, auteur, date absolue, références, note du commit)
-    ln = log --pretty=format:"%C(yellow)%h\\ %C(green)%ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%C(magenta)\\ %N" --decorate --date=short --graph
+    ln = log --pretty=format:"%C(yellow)%h %C(green)%ad%C(bold red)%d %Creset%s%C(cyan) [%cn]%C(magenta) %N" --decorate --date=short --graph
 
     # ----- GESTION DES BRANCHES
     # Change de branche
@@ -58,6 +60,8 @@
     sp = stash show -p
     # Affiche la liste des stash
     sl = stash list
+    # Affiche la liste des stash plus détaillé
+    slv = "!f() { git stash list --pretty=format:\"%C(green)%h%C(reset) - %C(dim yellow)(%C(bold cyan)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)\"; }; f"
     # Applique au répertoire de fichier le dernier stash (ou le stash passé en paramètre) et supprime le stash
     sp = stash pop
     # Applique au répertoire de fichier le dernier stash (ou le stash passé en paramètre)
@@ -71,7 +75,7 @@
     # Permet d'appliquer et supprimer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
     spr = "!f() { git stash pop stash^{/$*}; }; f"
     # Permet d'appliquer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
-    spr = "!f() { git stash apply stash^{/$*}; }; f"
+    sar = "!f() { git stash apply stash^{/$*}; }; f"
     # Permet de supprimer un stash selon un texte dans le titre du stash (Utile lorsqu'on nomme ses stash)
     sdr = "!f() { git stash drop stash^{/$*}; }; f"
 
