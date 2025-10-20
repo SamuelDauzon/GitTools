@@ -25,17 +25,25 @@
     # Liste les branches et la date de dernier commit (ordre chronologique)
     bold = for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
     # Liste les branches et la date de dernier commit (ordre antichronologique)
-    bnew = for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    bnew = for-each-ref --sort=-committerdate refs/heads/ --count=16 --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    # Liste les branches et leurs informations (ordre antichronologique)
+    bnewfull = for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    # Affiche un tableau des branches avec leur statut (merged) et autres informations
+    st-b = "!r() { refbranch=$1 count=$2; git for-each-ref --sort=-committerdate refs/heads --format='%(refname:short)|%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always --count=${count:-30} | while read line; do branch=$(echo \"$line\" | awk 'BEGIN { FS = \"|\" }; { print $1 }' | tr -d '*'); ahead=$(git rev-list --count \"${refbranch:-origin/develop}..${branch}\"); behind=$(git rev-list --count \"${branch}..${refbranch:-origin/develop}\"); ismerged=$(if git merge-base --is-ancestor "$branch" "${refbranch:-origin/develop}"; then echo "MERGED"; else echo "------"; fi); mergebase=$(git merge-base ${refbranch:-origin/develop} ${branch} | xargs git show -s --format='%cr'); shorthash=$(git rev-parse --short ${branch});colorline=$(echo \"$line\" | sed 's/^[^|]*|//'); echo \"$ahead|$behind|$ismerged|$shorthash|$mergebase|$colorline\" | awk -F'|' -vOFS='|' '{$8=substr($8,1,80)}1' ; done | ( echo \"ahead|behind|ismerged|shorthash|mergebase||branch|lastcommit|message|author\\n\" && cat) | column -ts'|'; }; r"
 
     # ----- LISTE DE COMMITS
     # Affiche la liste des commits avec les fichiers modifiés
     ll = log --pretty=format:'%C(yellow)%h%Cred%d %Creset%s%Cblue [%cn]' --decorate --numstat
     # Affiche la listes de commits (avec graph, auteur, date absolue, références)
     ld = log --pretty=format:'%C(yellow)%h %C(green)%ad%C(bold red)%d %Creset%s%C(cyan) [%cn]' --decorate --date=short --graph
+    # Affiche la listes de commits (avec graph, auteur, date absolue précise, références)
+    ldv = log --pretty=format:'%C(yellow)%h %C(green)%ad %C(bold red)%d %Creset%s%C(cyan) [%cn]' --decorate --date=format-local:'%Y-%m-%d %H:%M:%S' --graph
     # Affiche la listes de commits (avec graph, auteur, temps écoulé, références)
     ls = log --pretty=format:'%C(yellow)%h %C(green)[%ad]%C(bold red)%d %Creset%s%C(cyan) [%cn]' --decorate --date=relative
     # Affiche la listes de commits (avec graph, auteur, date absolue, références, note du commit)
     ln = log --pretty=format:'%C(yellow)%h %C(green)%ad%C(bold red)%d %Creset%s%C(cyan) [%cn]%C(magenta) %N' --decorate --date=short --graph
+    # Affiche les commits (avec hash, message, date, auteur, parents, références)
+    lpa = log --pretty=format:'%C(yellow)%h%Creset | %Cgreen%<(30,trunc)%s%Creset | %Cblue%ad%Creset | %C(red)%an%Creset | %C(cyan)%p%Creset | %C(magenta)%D%Creset' --date=iso
 
     # ----- GESTION DES BRANCHES
     # Change de branche
@@ -48,6 +56,16 @@
     bdp = !sh -c 'git branch -D $1 && git push origin :$1' -
     # Fusion sans avance rapide
     mnff = merge --no-ff
+    # Restaure un fichier à l'état qu'il avait sur l'ancêtre commun avec develop
+    restore-bb = !git checkout $(git merge-base develop $(git rev-parse --abbrev-ref HEAD))
+    # Génère les différences avec l'ancêtre commun de la branche develop
+    diff-bb = !git diff $(git merge-base develop $(git rev-parse --abbrev-ref HEAD))
+    # Execute un git reset --soft avec l'ancêtre commun de la branche develop
+    reset-soft-bb = !git reset --soft $(git merge-base develop $(git rev-parse --abbrev-ref HEAD))
+    # Permet un rebase --onto facile. Il faut se placer sur la branche et rebase et donner en argument le nom de la nouvelle base
+    rebaseon = "!f() { git rebase --onto \"$1\" $(git merge-base \"$1\" $(git rev-parse --abbrev-ref HEAD)) $(git rev-parse --abbrev-ref HEAD); }; f"
+    # Affiche l'état d'un rebase en cours (commits à rebase / commits totaux)
+    rebase-status = "!f() { total=$(git rev-list --count HEAD); remaining=$(git rev-list --count ORIG_HEAD ^HEAD); echo \"$remaining / $total\"; }; f"
 
     # ----- STASH (mettre de côté des modifications)
     # Met de côté les modifications actuelles des fichiers suivis
@@ -103,9 +121,18 @@
     # Ajouter un tag annoté
     tg = tag -a
     # Permet d'envoyer les modifications avec les tags
-    pu = push --tags
+    pu = "!sh -c 'parent=$(git for-each-ref --format=\"%(refname:short)\" --contains HEAD@{1} | sed -n 1p) && ancestor=$(git merge-base $parent HEAD) && files=$(git diff --name-only $ancestor HEAD | xargs grep -l \"TODOSD\") && if [ -n \"$files\" ]; then echo \"Error: The text \\\"TODOSD\\\" is present in one or more files between the common ancestor and the current branch:\"; echo \"$files\"; exit 1; else git push; fi'"
     # Affiche les options de configuration actives et leur fichier d'origine
     getconfig = config --list --show-origin
     # Commande inspirée de Mercurial qui permet d'afficher le nombre de lignes commitées par auteur.
     churn = "!f() { git ls-files -z | xargs -0n1 git blame -w --line-porcelain | grep -a "^author\\ " | sort -f | uniq -c | sort -nr;}; f"
+    # Affiche les informations étendues relatives à un commit
+    lvc = "!f() { git ld -1 $1;git log --pretty=raw -1 $1; git branch --contains $1; }; f"
+    # Affiche les alias en configuration
+    aliases = config --get-regexp alias
+    # Affiche le reflog avec les dates
+    reflogv = reflog --date=local
+    # Envoi d'une nouvelle branche locale
+    pushn = !git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
+
 
